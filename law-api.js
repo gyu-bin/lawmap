@@ -30,6 +30,7 @@
       return {
         ok: false,
         empty: true,
+        koreanLawFailed: true,
         error: data.error,
         guide: data.guide,
         detail: data.detail
@@ -164,6 +165,9 @@
     try {
       const proxy = await fetchFromProxy(scenarioKey, userText);
       if (proxy.ok) return proxy;
+      if (proxy.koreanLawFailed || proxy.empty || proxy.detail) {
+        return proxy;
+      }
       if (proxy.noLawOc) {
         const beop = await fetchBeopmangCards(scenarioKey, userText);
         if (beop.ok) return beop;

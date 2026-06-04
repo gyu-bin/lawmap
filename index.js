@@ -173,12 +173,13 @@ document.addEventListener("DOMContentLoaded", () => {
     nextActionCard.removeAttribute("hidden");
   };
 
-  const renderEmptyState = (message, detail) => {
+  const renderEmptyState = (message, detail, extraDetail) => {
     hideNextAction();
     lawCardsList.innerHTML = `
       <div class="empty-state" role="alert">
         <p class="empty-state-title">${message}</p>
         <p class="empty-state-detail">${detail}</p>
+        ${extraDetail ? `<p class="empty-state-detail">${extraDetail}</p>` : ""}
       </div>
     `;
     comprehensiveCard.classList.add("hidden");
@@ -193,7 +194,8 @@ document.addEventListener("DOMContentLoaded", () => {
       noLawOcMessage,
       situationLabel,
       nextAction,
-      nextActionSource
+      nextActionSource,
+      detail
     } = options;
     const label = situationLabel || SCENARIO_LABELS[scenarioKey] || SCENARIO_LABELS.general;
     const excerpt = userText.substring(0, 80) + (userText.length > 80 ? "..." : "");
@@ -215,15 +217,15 @@ document.addEventListener("DOMContentLoaded", () => {
           "Cursor에서는 .cursor/mcp.json 의 korean-law(remote URL에 ?oc=키)로 바로 조회할 수 있습니다. 웹앱은 로컬 dev 서버가 LAW_OC로 CLI를 호출합니다.";
       } else if (isMaintenance) {
         renderEmptyState(
-          "법령 API 점검 중입니다",
-          "법망(api.beopmang.org)이 점검 중입니다. npm run dev 로 띄운 서버와 .env 의 LAW_OC가 있으면 korean-law-mcp로 조회됩니다."
+          "법망 API 점검 중입니다",
+          "보조 API(법망)만 점검 중입니다. Vercel에 LAW_OC·OPENAI_API_KEY가 설정되어 있으면 법제처 API로 조회합니다. 환경 변수 변경 후 Redeploy가 필요합니다."
         );
         compText.textContent =
-          "http://localhost:3000 으로 접속했는지 확인하고, 터미널에서 npm run dev 를 재시작한 뒤 다시 검색해 주세요.";
+          "계속 실패하면 Vercel → Settings → Environment Variables 와 Functions 타임아웃(60초)을 확인하세요.";
       } else {
         renderEmptyState(
           "관련 법령을 찾지 못했습니다",
-          "검색어를 바꾸거나 잠시 후 다시 시도해 주세요."
+          detail || "검색어를 바꾸거나 잠시 후 다시 시도해 주세요."
         );
         compText.textContent = guide
           ? guide.slice(0, 1500)
@@ -284,8 +286,12 @@ document.addEventListener("DOMContentLoaded", () => {
           };
         } else if (live.maintenance) {
           renderOpts = { error: "maintenance" };
-        } else if (live.empty) {
-          renderOpts = { error: "empty", guide: live.guide };
+        } else if (live.koreanLawFailed || live.empty) {
+          renderOpts = {
+            error: "empty",
+            guide: live.guide,
+            detail: live.detail || live.error
+          };
         }
       } catch {
         renderOpts = { error: "unavailable" };

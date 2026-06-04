@@ -22,6 +22,11 @@ const {
   hasOpenAiKey
 } = require("./lib/generate-next-action.js");
 const { resolveKoreanLawBin } = require("./lib/korean-law-bin.js");
+const {
+  useHttpLawApi,
+  searchLawExact,
+  getArticleText
+} = require("./lib/law-go-kr-api.js");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -184,6 +189,19 @@ function buildPlaybookGuide(route, hits) {
 
 const DEFAULT_NEXT_ACTION = DEFAULT_FALLBACK;
 
+async function resolveLawByName(lawQuery) {
+  if (useHttpLawApi()) {
+    return searchLawExact(lawQuery);
+  }
+  const out = await runSearchLaw(lawQuery, "50");
+  let exact = parseExactSearchLawHits(out).find((h) => h.name === lawQuery);
+  if (!exact && lawQuery === "민법") {
+    const m = out.match(/민법\n\s*-\s*법령ID:\s*(\S+)\s*\n\s*-\s*MST:\s*(\S+)/);
+    if (m) exact = { name: "민법", lawId: m[1], mst: m[2] };
+  }
+  return exact || null;
+}
+
 async function fetchPlaybookHits(route) {
   const mstByLaw = {};
   const hits = [];
@@ -191,21 +209,25 @@ async function fetchPlaybookHits(route) {
   for (const art of route.articles) {
     try {
       if (!mstByLaw[art.lawQuery]) {
-        const out = await runSearchLaw(art.lawQuery, "50");
-        let exact = parseExactSearchLawHits(out).find(
-          (h) => h.name === art.lawQuery
-        );
-        if (!exact && art.lawQuery === "민법") {
-          const m = out.match(/민법\n\s*-\s*법령ID:\s*(\S+)\s*\n\s*-\s*MST:\s*(\S+)/);
-          if (m) {
-            exact = { name: "민법", lawId: m[1], mst: m[2] };
-          }
-        }
-        mstByLaw[art.lawQuery] = exact || null;
+        mstByLaw[art.lawQuery] = await resolveLawByName(art.lawQuery);
       }
       const law = mstByLaw[art.lawQuery];
       if (!law?.mst) {
         if (art.optional) continue;
+        continue;
+      }
+
+      if (useHttpLawApi()) {
+        const parsed = await getArticleText(law.mst, art.jo);
+        if (!parsed) continue;
+        hits.push({
+          name: law.name,
+          clause: parsed.clauseLabel,
+          relevance: parsed.relevance,
+          core: parsed.relevance,
+          desc: parsed.snippet || parsed.clauseLabel,
+          link: `https://www.law.go.kr/법령/${encodeURIComponent(law.name)}/${art.jo}`
+        });
         continue;
       }
 
@@ -222,8 +244,8 @@ async function fetchPlaybookHits(route) {
         desc: meta.snippet || meta.clauseLabel,
         link: `https://www.law.go.kr/법령/${encodeURIComponent(law.name)}/${art.jo}`
       });
-    } catch {
-      /* skip article */
+    } catch (err) {
+      console.warn("[playbook]", art.lawQuery, art.jo, err.message || err);
     }
   }
   return hits;
@@ -288,9 +310,19 @@ async function searchViaKoreanLaw(text, scenario) {
 
   for (const q of scenarioSearchQueries(scenario, text)) {
     try {
-      const out = await runSearchLaw(q);
-      const exact = parseExactSearchLawHits(out);
-      hits = dedupeHits([...hits, ...exact]);
+      if (useHttpLawApi()) {
+        const exact = await searchLawExact(q);
+        if (exact) {
+          hits = dedupeHits([
+            ...hits,
+            { name: exact.name, mst: exact.mst, lawId: exact.lawId, lawType: "법령" }
+          ]);
+        }
+      } else {
+        const out = await runSearchLaw(q);
+        const exact = parseExactSearchLawHits(out);
+        hits = dedupeHits([...hits, ...exact]);
+      }
     } catch {
       /* next */
     }
@@ -368,10 +400,12 @@ async function searchViaBeopmang(text, scenario) {
 app.get("/api/status", (_req, res) => {
   res.json({
     koreanLaw: {
-      cli: true,
+      cli: !useHttpLawApi(),
+      httpApi: useHttpLawApi(),
       lawOc: hasLawOc(),
       remote: "https://korean-law-mcp.fly.dev/mcp?oc=YOUR_KEY"
     },
+    openai: hasOpenAiKey(),
     beopmang: "https://api.beopmang.org"
   });
 });
