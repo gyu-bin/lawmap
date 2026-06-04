@@ -808,7 +808,7 @@ button {
   color: var(--text-color);
   line-height: 1.65;
   margin-bottom: 20px;
-  word-break: keep-all;
+  word-break: break-word;
 }
 
 /* 카드 목록 아래 한 번만 표시 (지금 할 일) */
@@ -1274,6 +1274,387 @@ button {
   opacity: 0.65;
   word-break: keep-all;
   text-align: right;
+}
+
+/* ==========================================================================
+   8b. 결과 전용 페이지 (results.html)
+   ========================================================================== */
+body.page-results {
+  background-color: var(--white);
+}
+
+body.page-results main {
+  min-height: calc(100vh - 64px);
+}
+
+body.page-results .results-section {
+  border-top: none;
+  padding-top: 28px;
+}
+
+body.page-results.is-searching .summary-box,
+body.page-results.is-searching .law-cards-list,
+body.page-results.is-searching .next-action-card,
+body.page-results.is-searching .comprehensive-card,
+body.page-results.is-searching .warning-banner,
+body.page-results.is-searching .results-footer {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.nav-btn-outline {
+  background: transparent;
+  color: var(--deep-color);
+  border: 1.5px solid rgba(76, 175, 114, 0.35);
+  box-shadow: none;
+}
+
+.nav-btn-outline:hover {
+  background: rgba(76, 175, 114, 0.08);
+}
+
+.results-loading {
+  margin-bottom: 28px;
+  padding: 28px 20px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, rgba(76, 175, 114, 0.06), rgba(26, 77, 50, 0.04));
+  border: 1px solid rgba(76, 175, 114, 0.15);
+}
+
+.results-loading-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.loader-dots--page {
+  display: flex;
+  gap: 8px;
+}
+
+.loader-dots--page .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  animation: dotBounce 1.2s infinite ease-in-out both;
+}
+
+.loader-dots--page .dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.loader-dots--page .dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.results-loading-text {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--deep-color);
+  font-weight: 500;
+}
+
+.footer-compact {
+  padding: 24px 16px;
+  border-top: 1px solid rgba(76, 175, 114, 0.1);
+}
+
+.footer-compact .footer-container {
+  justify-content: center;
+  text-align: center;
+}
+
+.footer-compact .copyright {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--mute-color);
+}
+
+.results-block {
+  margin-bottom: 40px;
+}
+
+.subsection-title {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  color: var(--deep-color);
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.subsection-desc {
+  margin: 0 0 20px;
+  font-size: 0.88rem;
+  color: var(--mute-color);
+  line-height: 1.5;
+}
+
+.subsection-desc code {
+  font-size: 0.82rem;
+  background: rgba(76, 175, 114, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.prec-list-meta {
+  margin: -8px 0 16px;
+  font-size: 0.9rem;
+  color: var(--deep-color);
+  font-weight: 500;
+}
+
+.subsection-empty {
+  margin: 0;
+  padding: 20px;
+  text-align: center;
+  color: var(--mute-color);
+  background: var(--bg-color);
+  border-radius: var(--radius-md);
+}
+
+.law-card--prec {
+  border-color: rgba(26, 77, 50, 0.12);
+  background: var(--white);
+  overflow: visible;
+  padding: 0;
+}
+
+.prec-accordion {
+  display: flex;
+  flex-direction: column;
+}
+
+.prec-accordion-toggle {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 22px;
+  border: none;
+  background: rgba(26, 77, 50, 0.04);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition: background 0.2s ease;
+}
+
+.prec-accordion-toggle:hover {
+  background: rgba(76, 175, 114, 0.1);
+}
+
+.prec-accordion-toggle.is-open {
+  background: rgba(76, 175, 114, 0.12);
+  border-bottom: 1px solid rgba(76, 175, 114, 0.15);
+}
+
+.prec-accordion-head {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0;
+}
+
+.prec-accordion-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.prec-accordion-titles .law-name {
+  font-size: 0.88rem;
+  color: var(--primary-color);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.prec-accordion-titles .clause-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--deep-color);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.prec-accordion-preview {
+  font-size: 0.86rem;
+  color: var(--mute-color);
+  line-height: 1.5;
+  margin-top: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.prec-accordion-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: var(--white);
+  border: 1px solid rgba(76, 175, 114, 0.25);
+  position: relative;
+}
+
+.prec-accordion-icon::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--deep-color);
+  border-bottom: 2px solid var(--deep-color);
+  transform: translate(-60%, -70%) rotate(45deg);
+  transition: transform 0.2s ease;
+}
+
+.prec-accordion-toggle.is-open .prec-accordion-icon::before {
+  transform: translate(-60%, -30%) rotate(-135deg);
+}
+
+.prec-accordion-panel {
+  padding: 0 20px 20px;
+}
+
+.prec-accordion-panel[hidden] {
+  display: none;
+}
+
+.prec-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.prec-section {
+  border: 1px solid rgba(76, 175, 114, 0.12);
+  border-radius: var(--radius-sm);
+  background: var(--bg-color);
+  overflow: hidden;
+}
+
+.prec-section-summary {
+  display: grid;
+  grid-template-columns: 1.25em 1fr;
+  gap: 4px 8px;
+  padding: 12px 16px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  align-items: start;
+}
+
+.prec-section-summary::-webkit-details-marker {
+  display: none;
+}
+
+.prec-section-summary::before {
+  content: "▸";
+  grid-row: 1 / -1;
+  color: var(--primary-color);
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.prec-section[open] > .prec-section-summary::before {
+  content: "▾";
+}
+
+.prec-section-label {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--deep-color);
+}
+
+.prec-section:not([open]) .prec-section-hint {
+  grid-column: 2;
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: var(--mute-color);
+  line-height: 1.45;
+}
+
+.prec-section[open] .prec-section-hint {
+  display: none;
+}
+
+.prec-section-body {
+  padding: 4px 16px 16px;
+  border-top: 1px solid rgba(76, 175, 114, 0.1);
+  background: var(--white);
+  max-height: min(70vh, 520px);
+  overflow-y: auto;
+}
+
+.prec-p {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  font-size: 0.93rem;
+  line-height: 1.8;
+  color: var(--text-color);
+  word-break: break-word;
+  background: rgba(76, 175, 114, 0.04);
+  border-radius: 6px;
+  border-left: 3px solid rgba(76, 175, 114, 0.25);
+}
+
+.prec-p:last-child {
+  margin-bottom: 0;
+}
+
+.prec-section-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.prec-section-body::-webkit-scrollbar-thumb {
+  background: rgba(76, 175, 114, 0.35);
+  border-radius: 3px;
+}
+
+.prec-refs {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(76, 175, 114, 0.2);
+}
+
+.prec-card-footer {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--bg-color);
+}
+
+.num-badge--prec {
+  background: var(--deep-color);
+}
+
+.relevance-badge--prec {
+  background: rgba(26, 77, 50, 0.08);
+  color: var(--deep-color);
+}
+
+.prec-ref {
+  margin: 12px 0 0;
+  font-size: 0.85rem;
+  color: var(--mute-color);
+  line-height: 1.5;
+}
+
+.law-body-desc--full {
+  margin: 0 0 4px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow: visible;
+  max-height: none;
+  line-height: 1.75;
 }
 
 /* ==========================================================================

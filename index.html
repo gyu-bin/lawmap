@@ -28,7 +28,7 @@
   <!-- 1. 네비게이션 바 -->
   <header class="navbar" id="navbar">
     <div class="nav-container">
-      <a href="#" class="logo" id="nav-logo">
+      <a href="index.html" class="logo" id="nav-logo">
         <span class="logo-box">법</span>
         <span class="logo-text">로맵</span>
       </a>
@@ -123,91 +123,7 @@
       </div>
     </section>
 
-    <!-- 5. 검색 결과 섹션 (초기에는 hidden 클래스 적용) -->
-    <section class="results-section hidden" id="results-section" hidden>
-      <div class="results-container">
-        
-        <div class="results-header">
-          <h2 class="section-title">분석 결과</h2>
-          <button type="button" class="back-btn" id="reset-search-btn-top">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="19" y1="12" x2="5" y2="12"></line>
-              <polyline points="12 19 5 12 12 5"></polyline>
-            </svg>
-            다른 상황 검색하기
-          </button>
-        </div>
-
-        <!-- A. 상황 요약 박스 -->
-        <div class="summary-box" id="summary-box">
-          <div class="summary-icon-container">
-            <svg class="summary-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-            </svg>
-          </div>
-          <div class="summary-content">
-            <h3 class="summary-title">작성하신 상황 요약</h3>
-            <p class="summary-text" id="summary-text">입력하신 상황을 분석 중입니다...</p>
-          </div>
-        </div>
-
-        <!-- B. 법령 카드 리스트 -->
-        <div class="law-cards-list" id="law-cards-list">
-          <!-- JS에서 동적으로 생성 삽입 -->
-        </div>
-
-        <!-- B-2. 지금 할 일 (카드 목록 아래 한 번만) -->
-        <div class="next-action-card hidden" id="next-action-card" hidden>
-          <div class="next-action-header">
-            <span class="action-label-tag">지금 할 일</span>
-            <span class="next-action-source hidden" id="next-action-source"></span>
-          </div>
-          <p class="action-text" id="next-action-text"></p>
-        </div>
-
-        <!-- C. 종합 안내 카드 -->
-        <div class="comprehensive-card" id="comprehensive-card">
-          <div class="comp-icon-box">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-            </svg>
-          </div>
-          <div class="comp-body">
-            <h3 class="comp-title">종합 대처 가이드</h3>
-            <p class="comp-text" id="comp-text">권익 보호를 위해 위 단계별 조치를 체계적으로 이행하는 것이 중요합니다. 입증 자료를 최대한 수집하고 공식 기구를 적극 활용하세요.</p>
-          </div>
-        </div>
-
-        <!-- D. 면책 고지 -->
-        <div class="warning-banner">
-          <div class="warning-header">
-            <svg class="warning-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-              <line x1="12" y1="9" x2="12" y2="13"></line>
-              <line x1="12" y1="17" x2="12.01" y2="17"></line>
-            </svg>
-            <span>이용 시 꼭 유의해 주세요!</span>
-          </div>
-          <p class="warning-text">
-            본 서비스는 한국 법제처의 공공 데이터를 가공하여 인공지능이 분석한 정보를 제공하며, 어떠한 경우에도 <strong>법률적 판단이나 자문을 대신할 수 없습니다.</strong> 구체적인 법률 분쟁이나 법적 구제 절차 진행 시에는 반드시 대한법률구조공단 또는 변호사 등 공인된 전문가의 법률 자문을 받으시기 바랍니다.
-          </p>
-        </div>
-
-        <!-- E. 하단 다른 상황 검색하기 버튼 -->
-        <div class="results-footer">
-          <button type="button" class="back-btn-large" id="reset-search-btn-bottom">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="19" y1="12" x2="5" y2="12"></line>
-              <polyline points="12 19 5 12 12 5"></polyline>
-            </svg>
-            새로운 상황으로 다시 검색하기
-          </button>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- 6. 이용 방법 섹션 -->
+    <!-- 5. 이용 방법 섹션 -->
     <section class="how-it-works" id="how-it-works">
       <div class="section-container">
         <span class="section-label">HOW IT WORKS</span>
@@ -230,7 +146,7 @@
               <span class="step-emoji">🔍</span>
               <h3 class="step-card-title">AI가 법령을 찾아요</h3>
             </div>
-            <p class="step-desc">작성한 문맥을 정밀하게 파악하여 가장 연관성이 높은 대한민국 법 조항들을 선별합니다.</p>
+            <p class="step-desc">작성한 문맥을 파악해 법제처 API로 관련 법령·조문과 판례(판시사항·판결요지)를 실시간 조회합니다.</p>
           </div>
 
           <div class="step-card">
@@ -298,7 +214,7 @@
   <footer class="footer">
     <div class="footer-container">
       <div class="footer-left">
-        <a href="#" class="logo">
+        <a href="index.html" class="logo">
           <span class="logo-box">법</span>
           <span class="logo-text">로맵</span>
         </a>
@@ -314,7 +230,8 @@
   <div class="toast" id="toast-msg">복사 완료!</div>
 
   <!-- 법령 API (법망 REST fallback) + 앱 로직 -->
-  <script src="law-api.js?v=5"></script>
-  <script src="index.js?v=5"></script>
+  <script src="law-api.js?v=6"></script>
+  <script src="lib/lawmap-shared.js?v=1"></script>
+  <script src="home.js?v=1"></script>
 </body>
 </html>

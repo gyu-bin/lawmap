@@ -14,7 +14,8 @@
 
 | 경로 | 설명 |
 |------|------|
-| `index.html`, `index.css`, `index.js` | UI + 시나리오 mock 결과 |
+| `index.html`, `home.js`, `index.css` | 홈(검색 입력·예시·가이드) |
+| `results.html`, `results.js` | 법령 검색 결과 전용 페이지 |
 | `law-api.js` | 브라우저용 법망 REST 클라이언트 (korean-law-mcp 대체 불가 → REST fallback) |
 | `.cursor/mcp.json` | 프로젝트 MCP 서버 설정 |
 | `scripts/smoke-law-apis.sh` | API 연결 스모크 테스트 |
@@ -22,7 +23,7 @@
 ## 개발 시
 
 - 법령·조문·판례 조회: MCP `korean-law` 도구 먼저, 실패 시 `beopmang`
-- 웹 검색: `index.js` + `law-api.js`(법망 REST만, mock 없음)
+- 웹 검색: `results.js` + `law-api.js` → `/api/law/search` (법제처 API)
 - 새 크롤러·별도 법령 패키지 추가 금지
 
 ## 스모크 테스트

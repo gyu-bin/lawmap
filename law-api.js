@@ -1,17 +1,16 @@
 /**
  * LawMap 법령 API
- * 1순위: 로컬 /api/law/search → korean-law-mcp CLI (LAW_OC)
- * 2순위: 법망 REST (점검·장애 시 fallback)
+ * 1순위: /api/law/search → 법제처 Open API(DRF) 실시간 조회 (LAW_OC)
+ * 2순위: 법망 REST (LAW_OC 없거나 서버 미구동 시)
  */
 (function (global) {
   const BEOPMANG_BASE = "https://api.beopmang.org/api/v4";
   const BEOPMANG_HEALTH = "https://api.beopmang.org/health";
   const API_SEARCH = "/api/law/search";
 
-  async function fetchFromProxy(scenarioKey, userText) {
+  async function fetchFromProxy(userText) {
     const url = `${API_SEARCH}?${new URLSearchParams({
-      text: userText,
-      scenario: scenarioKey
+      text: userText
     })}`;
     const res = await fetch(url, { headers: { Accept: "application/json" } });
     const data = await res.json().catch(() => ({}));
@@ -26,7 +25,7 @@
         guide: data.guide
       };
     }
-    if (data.koreanLawFailed || data.error === "playbook_empty") {
+    if (data.koreanLawFailed || data.error === "korean_law_empty") {
       return {
         ok: false,
         empty: true,
@@ -37,11 +36,14 @@
         detail: data.detail
       };
     }
-    if (data.ok && data.laws?.length) {
+    if (data.ok && (data.laws?.length || data.precedents?.length)) {
       return {
         ok: true,
         source: data.source || "korean-law",
-        laws: data.laws,
+        laws: data.laws || [],
+        precedents: data.precedents || [],
+        precListCount: data.precListCount,
+        precQueries: data.precQueries,
         guide: data.guide,
         route: data.route,
         situationLabel: data.situationLabel,
@@ -115,32 +117,27 @@
       .slice(0, 5);
   }
 
-  const scenarioLawHints = {
-    layoff: ["근로기준법", "부당해고"],
-    rent: ["주택임대차보호법", "임대차"],
-    refund: ["전자상거래", "소비자보호"],
-    bullying: ["근로기준법", "직장 내 괴롭힘"],
-    salary: ["근로기준법", "임금"],
-    general: ["민법", "불법행위", "도로교통법"]
-  };
-
-  function pickSearchQueries(scenarioKey, userText) {
-    const hints = scenarioLawHints[scenarioKey] || scenarioLawHints.general;
+  function pickSearchQueries(userText) {
     const trimmed = (userText || "").trim();
-    const queries = [...hints];
-    if (trimmed.includes("물") && trimmed.includes("벼락")) {
-      queries.unshift("불법행위", "민법");
-    } else if (trimmed.length > 4 && trimmed.length <= 40) {
-      queries.unshift(trimmed.slice(0, 40));
+    if (!trimmed) return [];
+    const queries = [trimmed.slice(0, 80)];
+    const tokens = trimmed
+      .replace(/[^\p{L}\p{N}\s]/gu, " ")
+      .split(/\s+/)
+      .map((w) => w.trim())
+      .filter((w) => w.length >= 2 && w.length <= 20)
+      .sort((a, b) => b.length - a.length);
+    for (const w of tokens) {
+      if (!queries.includes(w)) queries.push(w);
     }
-    return [...new Set(queries)].slice(0, 3);
+    return queries.slice(0, 4);
   }
 
-  async function fetchBeopmangCards(scenarioKey, userText) {
+  async function fetchBeopmangCards(userText) {
     const health = await checkBeopmangHealth();
     if (health.maintenance) return { ok: false, maintenance: true, tried: true };
 
-    for (const query of pickSearchQueries(scenarioKey, userText)) {
+    for (const query of pickSearchQueries(userText)) {
       try {
         const payload = await beopmangSearchLaw(query);
         const hits = normalizeSearchHits(payload);
@@ -162,15 +159,15 @@
     return { ok: false, empty: true, tried: true };
   }
 
-  async function fetchLiveLawCards(scenarioKey, userText) {
+  async function fetchLiveLawCards(_scenarioKey, userText) {
     try {
-      const proxy = await fetchFromProxy(scenarioKey, userText);
+      const proxy = await fetchFromProxy(userText);
       if (proxy.ok) return proxy;
       if (proxy.koreanLawFailed || proxy.empty || proxy.detail) {
         return proxy;
       }
       if (proxy.noLawOc) {
-        const beop = await fetchBeopmangCards(scenarioKey, userText);
+        const beop = await fetchBeopmangCards(userText);
         if (beop.ok) return beop;
         return {
           ok: false,
@@ -184,7 +181,7 @@
       /* static host without server.js — try beopmang direct */
     }
 
-    return fetchBeopmangCards(scenarioKey, userText);
+    return fetchBeopmangCards(userText);
   }
 
   global.LawApi = {

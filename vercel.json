@@ -8,8 +8,10 @@
       "config": {
         "includeFiles": [
           "index.html",
+          "results.html",
           "index.css",
-          "index.js",
+          "home.js",
+          "results.js",
           "law-api.js",
           "lib/**"
         ]

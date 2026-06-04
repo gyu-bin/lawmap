@@ -116,10 +116,12 @@ vercel env add OPENAI_MODEL
 lawmap/
 ├── server.js              # Express + /api/law/search
 ├── lib/
-│   ├── situation-playbooks.js   # 상황 → 조회할 조문 경로
+│   ├── law-search-network.js    # 법제처 DRF 실시간 조회 (aiSearch 등)
 │   ├── generate-next-action.js  # OpenAI 지금 할 일
 │   └── parse-korean-law.js
-├── index.html / index.js / index.css
+├── index.html / home.js — 홈(예시·가이드)
+├── results.html / results.js — 검색 결과 전용 페이지
+├── index.css
 ├── law-api.js
 └── vercel.json
 ```

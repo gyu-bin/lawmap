@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>분석 결과 — 로맵 (LawMap)</title>
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚖️</text></svg>">
+  <link rel="stylesheet" href="index.css?v=9">
+</head>
+<body class="page-results">
+
+  <header class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <span class="logo-box">법</span>
+        <span class="logo-text">로맵</span>
+      </a>
+      <nav class="nav-menu">
+        <a href="index.html#how-it-works" class="nav-link">이용방법</a>
+        <a href="index.html" class="nav-btn nav-btn-outline" id="nav-btn-home">홈으로</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="results-section" id="results-section">
+      <div class="results-container">
+
+        <div class="results-header">
+          <h2 class="section-title">분석 결과</h2>
+          <button type="button" class="back-btn" id="reset-search-btn-top">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            다른 상황 검색하기
+          </button>
+        </div>
+
+        <div class="results-loading" id="results-loading" aria-live="polite">
+          <div class="results-loading-inner">
+            <div class="loader-dots loader-dots--page">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+            <p class="results-loading-text">법제처 API에서 관련 법령·조문·판례를 조회하고 있습니다…</p>
+          </div>
+        </div>
+
+        <div class="summary-box" id="summary-box">
+          <div class="summary-icon-container">
+            <svg class="summary-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+          <div class="summary-content">
+            <h3 class="summary-title">작성하신 상황 요약</h3>
+            <p class="summary-text" id="summary-text">입력하신 상황을 분석 중입니다…</p>
+          </div>
+        </div>
+
+        <div class="results-block" id="laws-block">
+          <h3 class="subsection-title">관련 법령</h3>
+          <div class="law-cards-list" id="law-cards-list"></div>
+        </div>
+
+        <div class="results-block" id="precedents-block">
+          <h3 class="subsection-title">관련 판례</h3>
+          <p class="subsection-desc">
+            <strong>법령</strong>은 조문(규정)이고, <strong>판례</strong>는 법원이 실제 사건을 판단한 사례입니다.
+            법제처 <code>lawSearch.do?target=prec</code> 목록 조회 후 본문 API로 사건·주문(결과)을 불러옵니다.
+          </p>
+          <p class="prec-list-meta hidden" id="prec-list-meta"></p>
+          <div class="law-cards-list" id="prec-cards-list"></div>
+        </div>
+
+        <div class="next-action-card hidden" id="next-action-card" hidden>
+          <div class="next-action-header">
+            <span class="action-label-tag">지금 할 일</span>
+            <span class="next-action-source hidden" id="next-action-source"></span>
+          </div>
+          <p class="action-text" id="next-action-text"></p>
+        </div>
+
+        <div class="comprehensive-card" id="comprehensive-card">
+          <div class="comp-icon-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+          </div>
+          <div class="comp-body">
+            <h3 class="comp-title">종합 대처 가이드</h3>
+            <p class="comp-text" id="comp-text"></p>
+          </div>
+        </div>
+
+        <div class="warning-banner">
+          <div class="warning-header">
+            <svg class="warning-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <span>이용 시 꼭 유의해 주세요!</span>
+          </div>
+          <p class="warning-text">
+            본 서비스는 한국 법제처의 공공 데이터를 가공하여 인공지능이 분석한 정보를 제공하며, 어떠한 경우에도 <strong>법률적 판단이나 자문을 대신할 수 없습니다.</strong> 구체적인 법률 분쟁이나 법적 구제 절차 진행 시에는 반드시 대한법률구조공단 또는 변호사 등 공인된 전문가의 법률 자문을 받으시기 바랍니다.
+          </p>
+        </div>
+
+        <div class="results-footer">
+          <button type="button" class="back-btn-large" id="reset-search-btn-bottom">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            새로운 상황으로 다시 검색하기
+          </button>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer footer-compact">
+    <div class="footer-container">
+      <p class="copyright">© 2026 LawMap · 정보 제공 목적 (법률 자문 아님)</p>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast-msg">복사 완료!</div>
+
+  <script src="law-api.js?v=6"></script>
+  <script src="lib/lawmap-shared.js?v=1"></script>
+  <script src="results.js?v=9"></script>
+</body>
+</html>
