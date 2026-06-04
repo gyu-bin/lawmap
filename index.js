@@ -197,7 +197,10 @@ document.addEventListener("DOMContentLoaded", () => {
       nextActionSource,
       detail
     } = options;
-    const label = situationLabel || SCENARIO_LABELS[scenarioKey] || SCENARIO_LABELS.general;
+    const label =
+      situationLabel ||
+      SCENARIO_LABELS[scenarioKey] ||
+      SCENARIO_LABELS.general;
     const excerpt = userText.substring(0, 80) + (userText.length > 80 ? "..." : "");
 
     comprehensiveCard.classList.remove("hidden");
@@ -277,6 +280,15 @@ document.addEventListener("DOMContentLoaded", () => {
             situationLabel: live.situationLabel,
             nextAction: live.nextAction,
             nextActionSource: live.nextActionSource
+          };
+        } else if (live.situationLabel && (live.koreanLawFailed || live.empty)) {
+          renderOpts = {
+            error: "empty",
+            situationLabel: live.situationLabel,
+            guide: live.guide,
+            detail:
+              live.detail ||
+              "조문 본문을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."
           };
         } else if (live.noLawOc) {
           renderOpts = {

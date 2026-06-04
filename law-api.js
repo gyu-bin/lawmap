@@ -26,11 +26,12 @@
         guide: data.guide
       };
     }
-    if (data.koreanLawFailed) {
+    if (data.koreanLawFailed || data.error === "playbook_empty") {
       return {
         ok: false,
         empty: true,
         koreanLawFailed: true,
+        situationLabel: data.situationLabel,
         error: data.error,
         guide: data.guide,
         detail: data.detail

@@ -25,7 +25,8 @@ const { resolveKoreanLawBin } = require("./lib/korean-law-bin.js");
 const {
   useHttpLawApi,
   searchLawExact,
-  getArticleText
+  getArticleText,
+  enrichLawHitWithArticle
 } = require("./lib/law-go-kr-api.js");
 
 const app = express();
@@ -260,7 +261,9 @@ function hitsToCards(hits, source) {
     core: h.core || `${h.name} ${h.clause || ""}`.trim(),
     desc:
       h.desc ||
-      "법제처 Open API에서 조회한 조문입니다. 원문 링크에서 전문을 확인하세요.",
+      (h.clause && h.clause !== "관련 조문"
+        ? h.clause
+        : "조문 본문을 불러오지 못했습니다. 아래 원문 링크에서 확인하세요."),
     link: h.link || `https://www.law.go.kr/법령/${encodeURIComponent(h.name)}`,
     source
   }));
@@ -292,6 +295,13 @@ async function searchViaKoreanLaw(text, scenario) {
         situationRoute.nextAction || DEFAULT_NEXT_ACTION
       );
     }
+    return {
+      ok: false,
+      error: "playbook_empty",
+      situationLabel: situationRoute.label,
+      detail:
+        "관련 조문 본문을 법제처 API에서 가져오지 못했습니다. 잠시 후 다시 시도해 주세요."
+    };
   }
 
   let hits = [];
@@ -328,7 +338,22 @@ async function searchViaKoreanLaw(text, scenario) {
     }
   }
 
-  hits = rankHitsForSituation(dedupeHits(hits), text).slice(0, 5);
+  hits = rankHitsForSituation(dedupeHits(hits), text).slice(0, 8);
+
+  if (useHttpLawApi()) {
+    const enriched = [];
+    for (const h of hits) {
+      try {
+        const row = await enrichLawHitWithArticle(h);
+        if (row?.desc) enriched.push(row);
+      } catch {
+        /* skip */
+      }
+    }
+    hits = enriched;
+  }
+
+  hits = hits.slice(0, 5);
 
   if (hits.length > 0) {
     return enrichWithNextAction(
