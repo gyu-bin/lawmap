@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚖️</text></svg>">
-  <link rel="stylesheet" href="index.css?v=9">
+  <link rel="stylesheet" href="index.css?v=10">
 </head>
 <body class="page-results">
 
@@ -61,6 +61,7 @@
           <div class="summary-content">
             <h3 class="summary-title">작성하신 상황 요약</h3>
             <p class="summary-text" id="summary-text">입력하신 상황을 분석 중입니다…</p>
+            <p class="key-summary hidden" id="key-summary" hidden></p>
           </div>
         </div>
 
@@ -85,18 +86,6 @@
             <span class="next-action-source hidden" id="next-action-source"></span>
           </div>
           <p class="action-text" id="next-action-text"></p>
-        </div>
-
-        <div class="comprehensive-card" id="comprehensive-card">
-          <div class="comp-icon-box">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-            </svg>
-          </div>
-          <div class="comp-body">
-            <h3 class="comp-title">종합 대처 가이드</h3>
-            <p class="comp-text" id="comp-text"></p>
-          </div>
         </div>
 
         <div class="warning-banner">
@@ -137,6 +126,6 @@
 
   <script src="law-api.js?v=6"></script>
   <script src="lib/lawmap-shared.js?v=1"></script>
-  <script src="results.js?v=9"></script>
+  <script src="results.js?v=10"></script>
 </body>
 </html>

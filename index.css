@@ -778,7 +778,7 @@ button {
   margin: 0 auto;
 }
 
-.comprehensive-card.hidden {
+.key-summary.hidden {
   display: none;
 }
 
@@ -917,53 +917,28 @@ button {
   height: 14px;
 }
 
-/* C. 종합 안내 카드 */
-.comprehensive-card {
-  background-color: var(--deep-color);
-  color: var(--white);
-  border-radius: var(--radius-md);
-  padding: 32px;
-  display: flex;
-  gap: 24px;
-  margin-bottom: 24px;
-  box-shadow: var(--shadow-md);
-}
-
-.comp-icon-box {
-  flex-shrink: 0;
-  width: 56px;
-  height: 56px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--sub-color);
-}
-
-.comp-icon-box svg {
-  width: 28px;
-  height: 28px;
-}
-
-.comp-body {
+/* C. 핵심 요약 (상황 요약 박스 안) */
+.key-summary {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(76, 175, 114, 0.25);
 }
 
-.comp-title {
-  font-family: var(--font-heading);
-  font-size: 1.35rem;
-  font-weight: 700;
-  letter-spacing: -0.3px;
-}
-
-.comp-text {
-  font-size: 0.98rem;
-  line-height: 1.7;
-  opacity: 0.9;
+.key-summary-line {
+  display: block;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--mute-color);
   word-break: keep-all;
+}
+
+.key-summary-line::before {
+  content: "· ";
+  color: var(--primary-color);
+  font-weight: 700;
 }
 
 /* D. 면책 고지 */
@@ -1295,7 +1270,7 @@ body.page-results .results-section {
 body.page-results.is-searching .summary-box,
 body.page-results.is-searching .law-cards-list,
 body.page-results.is-searching .next-action-card,
-body.page-results.is-searching .comprehensive-card,
+body.page-results.is-searching .key-summary,
 body.page-results.is-searching .warning-banner,
 body.page-results.is-searching .results-footer {
   opacity: 0.45;
@@ -1770,22 +1745,6 @@ body.page-results.is-searching .results-footer {
   .steps-grid {
     grid-template-columns: 1fr;
     gap: 16px;
-  }
-  
-  .comprehensive-card {
-    flex-direction: column;
-    gap: 16px;
-    padding: 24px;
-  }
-  
-  .comp-icon-box {
-    width: 44px;
-    height: 44px;
-  }
-  
-  .comp-icon-box svg {
-    width: 22px;
-    height: 22px;
   }
   
   .footer-container {

@@ -22,7 +22,7 @@
         ok: false,
         maintenance: data.maintenance,
         error: data.error,
-        guide: data.guide
+        keySummary: data.keySummary
       };
     }
     if (data.koreanLawFailed || data.error === "korean_law_empty") {
@@ -32,7 +32,6 @@
         koreanLawFailed: true,
         situationLabel: data.situationLabel,
         error: data.error,
-        guide: data.guide,
         detail: data.detail
       };
     }
@@ -44,7 +43,7 @@
         precedents: data.precedents || [],
         precListCount: data.precListCount,
         precQueries: data.precQueries,
-        guide: data.guide,
+        keySummary: data.keySummary,
         route: data.route,
         situationLabel: data.situationLabel,
         nextAction: data.nextAction,
@@ -55,7 +54,7 @@
       ok: false,
       empty: data.error === "empty",
       maintenance: data.maintenance,
-      guide: data.guide
+      keySummary: data.keySummary
     };
   }
 

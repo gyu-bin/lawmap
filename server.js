@@ -69,23 +69,21 @@ function precsToCards(precs) {
   });
 }
 
-function buildNetworkGuide(userText, queries, hits, precedents, precQueries) {
-  const lines = [
-    "【법제처 Open API 실시간 조회】",
-    `검색어: ${userText.slice(0, 120)}${userText.length > 120 ? "…" : ""}`,
-    `법령 조회: ${queries.join(" · ")}`,
-    "",
-    ...hits.map(
-      (h, i) => `${i + 1}. ${h.name} — ${h.clause}\n   ${(h.desc || "").slice(0, 200)}`
-    )
-  ];
+/** 결과 페이지용 한 줄~몇 줄 핵심만 (법령·판례 카드와 중복 나열하지 않음) */
+function buildKeySummary(hits, precedents) {
+  const lines = [];
+  if (hits?.length) {
+    const top = hits.slice(0, 3).map((h) => `${h.name} ${h.clause || ""}`.trim());
+    lines.push(`법령 ${hits.length}건 — ${top.join(" · ")}`);
+  }
   if (precedents?.length) {
-    lines.push("", `판례 조회: ${(precQueries || []).join(" · ")}`, "");
-    precedents.forEach((p, i) => {
-      lines.push(
-        `${i + 1}. ${p.caseName} (${p.court})\n   ${(p.summary || p.holding || "").slice(0, 200)}`
-      );
+    const top = precedents.slice(0, 2).map((p) => {
+      const title = p.caseName || p.name;
+      const court =
+        p.court || (p.clause && String(p.clause).split("·")[0]?.trim());
+      return [title, court].filter(Boolean).join(" ");
     });
+    lines.push(`판례 ${precedents.length}건 — ${top.join(" · ")}`);
   }
   return lines.join("\n");
 }
@@ -116,7 +114,7 @@ async function searchViaKoreanLaw(text) {
         precedents: precsToCards(precedents),
         precListCount,
         precQueries,
-        guide: buildNetworkGuide(text, queries, hits, precedents, precQueries),
+        keySummary: buildKeySummary(hits, precedents),
         route: {
           tool: "law.go.kr/DRF (aiSearch + lawSearch + lawService + prec)",
           reason: "상황 문장 기반 실시간 네트워크 조회(법령·판례)"
@@ -166,7 +164,15 @@ async function searchViaBeopmang(text) {
       source: "beopmang"
     }));
     return enrichWithNextAction(
-      { ok: true, source: "beopmang", laws },
+      {
+        ok: true,
+        source: "beopmang",
+        laws,
+        keySummary: buildKeySummary(
+          laws.map((l) => ({ name: l.name, clause: l.clause })),
+          []
+        )
+      },
       text,
       DEFAULT_NEXT_ACTION
     );
@@ -227,7 +233,6 @@ app.get("/api/law/search", async (req, res) => {
       error: primary.error || "empty",
       koreanLawFailed: true,
       detail: primary.detail,
-      guide: primary.guide,
       route: primary.route
     });
   }
@@ -246,7 +251,6 @@ app.get("/api/law/search", async (req, res) => {
     error: primary.error || "unavailable",
     maintenance: Boolean(fallback.maintenance),
     detail: primary.detail,
-    guide: primary.guide,
     route: primary.route
   });
 });

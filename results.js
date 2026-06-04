@@ -11,8 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const nextActionCard = document.getElementById("next-action-card");
   const nextActionText = document.getElementById("next-action-text");
   const nextActionSource = document.getElementById("next-action-source");
-  const compText = document.getElementById("comp-text");
-  const comprehensiveCard = document.getElementById("comprehensive-card");
+  const keySummaryEl = document.getElementById("key-summary");
   const resetBtnTop = document.getElementById("reset-search-btn-top");
   const resetBtnBottom = document.getElementById("reset-search-btn-bottom");
   const toastMsg = document.getElementById("toast-msg");
@@ -330,6 +329,46 @@ document.addEventListener("DOMContentLoaded", () => {
     bindCopyButtons(precCardsList);
   };
 
+  const hideKeySummary = () => {
+    if (!keySummaryEl) return;
+    keySummaryEl.textContent = "";
+    keySummaryEl.classList.add("hidden");
+    keySummaryEl.setAttribute("hidden", "");
+  };
+
+  const renderKeySummary = (text) => {
+    if (!keySummaryEl) return;
+    const lines = String(text || "")
+      .trim()
+      .split("\n")
+      .filter(Boolean);
+    if (!lines.length) {
+      hideKeySummary();
+      return;
+    }
+    keySummaryEl.innerHTML = lines
+      .map((line) => `<span class="key-summary-line">${escapeHtml(line)}</span>`)
+      .join("");
+    keySummaryEl.classList.remove("hidden");
+    keySummaryEl.removeAttribute("hidden");
+  };
+
+  const buildKeySummaryFromCards = (laws, precs) => {
+    const lines = [];
+    if (laws?.length) {
+      const top = laws.slice(0, 3).map((l) => `${l.name} ${l.clause || ""}`.trim());
+      lines.push(`법령 ${laws.length}건 — ${top.join(" · ")}`);
+    }
+    if (precs?.length) {
+      const top = precs.slice(0, 2).map((p) => {
+        const court = p.clause && String(p.clause).split("·")[0]?.trim();
+        return [p.name, court].filter(Boolean).join(" ");
+      });
+      lines.push(`판례 ${precs.length}건 — ${top.join(" · ")}`);
+    }
+    return lines.join("\n");
+  };
+
   const hideNextAction = () => {
     if (!nextActionCard) return;
     nextActionCard.classList.add("hidden");
@@ -369,7 +408,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${extraDetail ? `<p class="empty-state-detail">${extraDetail}</p>` : ""}
       </div>
     `;
-    comprehensiveCard.classList.add("hidden");
+    hideKeySummary();
   };
 
   const renderResults = (scenarioKey, userText, options = {}) => {
@@ -379,7 +418,7 @@ document.addEventListener("DOMContentLoaded", () => {
       precListCount,
       error,
       dataSource,
-      guide,
+      keySummary,
       noLawOcMessage,
       situationLabel,
       nextAction,
@@ -393,7 +432,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "일반";
     const excerpt = userText.substring(0, 80) + (userText.length > 80 ? "..." : "");
 
-    comprehensiveCard.classList.remove("hidden");
+    hideKeySummary();
 
     const hasLaws = liveLaws?.length > 0;
     const hasPrecs = livePrecedents?.length > 0;
@@ -409,24 +448,16 @@ document.addEventListener("DOMContentLoaded", () => {
           noLawOcMessage ||
             "프로젝트 루트 .env 파일에 LAW_OC(법제처 Open API 키)를 넣고 npm run dev 로 서버를 다시 실행하세요. 발급: https://open.law.go.kr"
         );
-        compText.textContent =
-          "Vercel 배포 시 Environment Variables에 LAW_OC를 설정한 뒤 Redeploy하세요.";
       } else if (isMaintenance) {
         renderEmptyState(
           "법망 API 점검 중입니다",
           "보조 API(법망)만 점검 중입니다. Vercel에 LAW_OC·OPENAI_API_KEY가 설정되어 있으면 법제처 API로 조회합니다."
         );
-        compText.textContent =
-          "계속 실패하면 Vercel → Settings → Environment Variables 를 확인하세요.";
       } else {
         renderEmptyState(
           "관련 법령을 찾지 못했습니다",
           detail || "검색어를 바꾸거나 잠시 후 다시 시도해 주세요."
         );
-        compText.textContent = guide
-          ? guide.slice(0, 1500)
-          : "입증 자료를 정리하고, 필요 시 대한법률구조공단(132) 등 공식 창구 상담을 검토하세요.";
-        if (guide) comprehensiveCard.classList.remove("hidden");
       }
       return;
     }
@@ -448,10 +479,9 @@ document.addEventListener("DOMContentLoaded", () => {
       listCount: options.precListCount || livePrecedents?.length || 0
     });
     renderNextAction(nextAction, nextActionSource);
-    compText.style.whiteSpace = "pre-wrap";
-    compText.textContent = guide
-      ? `${guide}\n\n— 위 내용은 참고용이며 법률 자문이 아닙니다.`
-      : "위 법령 원문을 확인한 뒤, 상황에 맞는 증거를 모으고 관할 기관·전문가 상담을 검토하세요. 본 안내는 법률 자문이 아닙니다.";
+    renderKeySummary(
+      keySummary || buildKeySummaryFromCards(liveLaws, livePrecedents)
+    );
   };
 
   const performSearch = async () => {
@@ -473,7 +503,7 @@ document.addEventListener("DOMContentLoaded", () => {
             livePrecedents: live.precedents || [],
             precListCount: live.precListCount,
             dataSource: live.source,
-            guide: live.guide,
+            keySummary: live.keySummary,
             situationLabel: live.situationLabel,
             nextAction: live.nextAction,
             nextActionSource: live.nextActionSource
@@ -482,7 +512,6 @@ document.addEventListener("DOMContentLoaded", () => {
           renderOpts = {
             error: "empty",
             situationLabel: live.situationLabel,
-            guide: live.guide,
             detail:
               live.detail ||
               "조문 본문을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."
@@ -498,7 +527,6 @@ document.addEventListener("DOMContentLoaded", () => {
         } else if (live.koreanLawFailed || live.empty) {
           renderOpts = {
             error: "empty",
-            guide: live.guide,
             detail: live.detail || live.error
           };
         }

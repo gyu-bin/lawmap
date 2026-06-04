@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F2FAF4"/>
+      <stop offset="100%" stop-color="#C8EDD5"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="48" y="48" width="1104" height="534" rx="28" fill="#FFFFFF"/>
+  <rect x="96" y="120" width="88" height="88" rx="18" fill="#4CAF72"/>
+  <text x="140" y="182" font-family="sans-serif" font-size="52" font-weight="700" fill="#FFFFFF" text-anchor="middle">법</text>
+  <text x="220" y="175" font-family="sans-serif" font-size="64" font-weight="700" fill="#1A4D32">로맵</text>
+  <text x="220" y="228" font-family="sans-serif" font-size="28" fill="#6B8C76">LawMap</text>
+  <text x="96" y="310" font-family="sans-serif" font-size="48" font-weight="700" fill="#1A4D32">내 상황에 맞는 법령 찾기</text>
+  <text x="96" y="380" font-family="sans-serif" font-size="28" fill="#1A2E22">상황만 적으면 관련 법령·판례를 정리해 드립니다</text>
+  <rect x="96" y="420" width="480" height="56" rx="28" fill="#4CAF72"/>
+  <text x="336" y="458" font-family="sans-serif" font-size="24" font-weight="700" fill="#FFFFFF" text-anchor="middle">법제처 Open API · 참고용 안내</text>
+  <circle cx="1020" cy="400" r="100" fill="#4CAF72" opacity="0.18"/>
+  <rect x="920" y="300" width="200" height="200" rx="16" fill="#4CAF72" opacity="0.25"/>
+</svg>

@@ -9,6 +9,8 @@
         "includeFiles": [
           "index.html",
           "results.html",
+          "og-image.png",
+          "og-image.svg",
           "index.css",
           "home.js",
           "results.js",
