@@ -1,0 +1,53 @@
+---
+description: 한국 법령 검색·조회 시 korean-law-mcp 우선, 법망 fallback
+alwaysApply: true
+---
+
+# 한국 법령 검색 (LawMap)
+
+## 가장 중요한 규칙
+
+한국 법령 관련 검색/조회가 필요할 때는 **korean-law-mcp를 먼저** 사용한다.
+기존 경로가 동작하지 않을 때만 승인된 fallback인 **법망** (`https://api.beopmang.org`)으로 전환한다.
+별도 repo package, 별도 python package, 임의 크롤러를 새로 만들지 않는다.
+
+## MCP 우선순위
+
+1. `korean-law` — `.cursor/mcp.json`의 remote `https://korean-law-mcp.fly.dev/mcp` (사용자 `LAW_OC` 불필요)
+2. 로컬이 필요하면 `mcp.local.example.json` 참고: `command: korean-law-mcp`, `env.LAW_OC`
+3. 장애 시 `beopmang` — `https://api.beopmang.org/mcp` 또는 REST
+
+## 기본 흐름
+
+1. 질의가 법령/판례/행정해석/자치법규 중 어디에 가까운지 분류
+2. 법령명 → `search_law`
+3. 조문 본문 → `search_law` 또는 `search_all`로 `mst` 확인 후 `get_law_text`
+4. 판례 → `search_precedents`, 유권해석 → `search_interpretations`, 자치법규 → `search_ordinance`
+5. 애매하면 `search_all`
+6. korean-law-mcp 실패 시 법망 fallback
+7. fallback 0건이어도 검색어·범주 재확인 후 단정하지 않음
+
+## CLI (로컬, `LAW_OC` 필요)
+
+```bash
+npm install -g korean-law-mcp
+export LAW_OC=your-api-key   # https://open.law.go.kr
+
+korean-law search_law --query "관세법"
+korean-law get_law_text --mst 160001 --jo "제38조"
+```
+
+## 법망 REST fallback
+
+```bash
+curl "https://api.beopmang.org/api/v4/law?action=search&q=관세법"
+curl "https://api.beopmang.org/api/v4/law?action=get&law_id=001706&article=제750조"
+```
+
+## 운영 팁
+
+- 약칭(예: 화관법)은 `search_law` / `search_all`로 정식 법령명 확인
+- 요약은 가능하나 법률 자문처럼 단정적 결론 금지
+- LawMap 웹(`index.js`)은 브라우저에서 `law-api.js` 법망 REST만 사용 (mock 없음)
+
+상세: `docs/korean-law-search.md`

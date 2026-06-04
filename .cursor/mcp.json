@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "korean-law": {
+      "url": "https://korean-law-mcp.fly.dev/mcp?oc=YOUR_LAW_OC_KEY"
+    },
+    "beopmang": {
+      "url": "https://api.beopmang.org/mcp"
+    }
+  }
+}

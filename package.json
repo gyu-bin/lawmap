@@ -1,0 +1,20 @@
+{
+  "name": "lawmap",
+  "version": "1.0.0",
+  "private": true,
+  "description": "로맵 — 상황 기반 법령 안내",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "npm run dev",
+    "static": "serve . -l 3000",
+    "smoke": "./scripts/smoke-law-apis.sh"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "korean-law-mcp": "^4.1.1"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}

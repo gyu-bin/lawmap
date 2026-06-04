@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "korean-law": {
+      "command": "korean-law-mcp",
+      "env": {
+        "LAW_OC": "your-api-key-from-https://open.law.go.kr"
+      }
+    },
+    "beopmang": {
+      "url": "https://api.beopmang.org/mcp"
+    }
+  }
+}

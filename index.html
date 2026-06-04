@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>로맵 (LawMap) - 내 상황에 맞는 법령 찾기</title>
+  
+  <!-- SEO 메타 태그 -->
+  <meta name="description" content="법을 몰라 억울한 일 없도록, 복잡한 법령을 상황에 맞춰 AI가 찾아주고 쉽게 설명해 드립니다.">
+  <meta name="keywords" content="법률, 법령 검색, 생활 법률, 부당해고, 임대차보호법, 임금체불, 환불 거부, 직장 내 괴롭힘, 쉬운 법률">
+  <meta property="og:title" content="로맵 (LawMap) - 내 상황에 맞는 법령 찾기">
+  <meta property="og:description" content="어렵고 낯선 법률 조항, 내 상황만 적어주시면 딱 맞는 법령과 행동 지침을 정리해 드립니다.">
+  <meta property="og:type" content="website">
+  
+  <!-- 구글 폰트 로드 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
+  
+  <!-- 파비콘 대신 이모지 설정 -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚖️</text></svg>">
+  
+  <!-- 스타일시트 연동 -->
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+  <!-- 1. 네비게이션 바 -->
+  <header class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="#" class="logo" id="nav-logo">
+        <span class="logo-box">법</span>
+        <span class="logo-text">로맵</span>
+      </a>
+      <nav class="nav-menu">
+        <a href="#how-it-works" class="nav-link" id="nav-link-how">이용방법</a>
+        <a href="#faq" class="nav-link" id="nav-link-faq">자주묻는질문</a>
+        <a href="#search-section" class="nav-btn" id="nav-btn-search">바로 검색하기</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- 2. 히어로 섹션 -->
+    <section class="hero-section" id="hero-section">
+      <div class="hero-container">
+        <div class="ai-badge" id="ai-badge">
+          <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+          AI × 한국 법령 데이터베이스
+        </div>
+        <h1 class="hero-title">
+          내 상황, <span class="highlight-line">어떤 법이</span> 적용될까요
+        </h1>
+        <p class="hero-subtitle">
+          법을 몰라 억울한 일 없도록. 상황을 말하면 관련 법령을 찾아 쉽게 설명해드려요.
+        </p>
+      </div>
+    </section>
+
+    <!-- 3. 검색 및 상황 칩 섹션 -->
+    <section class="search-section" id="search-section">
+      <div class="search-container">
+        
+        <!-- 검색 카드 -->
+        <div class="search-card" id="search-card">
+          <form id="law-search-form" onsubmit="return false;">
+            <div class="card-header">
+              <span class="status-indicator"></span>
+              <label for="situation-input" class="card-label">상황을 자세히 적어주세요</label>
+            </div>
+            
+            <div class="textarea-wrapper">
+              <textarea 
+                id="situation-input" 
+                maxlength="500" 
+                placeholder="예: 근로계약서도 안 쓰고 3달 동안 일했는데, 오늘 갑자기 문자 한 통으로 내일부터 나오지 말라고 해고를 통보 받았습니다. 어떻게 대응해야 할까요?"
+                required
+              ></textarea>
+            </div>
+            
+            <div class="card-footer">
+              <span class="char-counter" id="char-counter">0/500자</span>
+              <button type="submit" class="submit-btn" id="submit-btn">
+                <span class="btn-text">법령 찾기</span>
+                <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+                
+                <!-- 로딩 애니메이션 (숨김 상태) -->
+                <div class="loader-dots" id="loader-dots">
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                </div>
+              </button>
+            </div>
+          </form>
+        </div>
+        
+        <!-- 4. 상황 예시 칩 -->
+        <div class="chips-container" id="chips-container">
+          <div class="chips-label">💡 이런 상황이신가요?</div>
+          <div class="chips-wrapper">
+            <button type="button" class="example-chip" data-scenario="layoff">😤 갑자기 해고 당했어요</button>
+            <button type="button" class="example-chip" data-scenario="rent">🏠 집주인이 나가라고 해요</button>
+            <button type="button" class="example-chip" data-scenario="refund">📦 환불이 거부됐어요</button>
+            <button type="button" class="example-chip" data-scenario="bullying">😰 직장 내 괴롭힘</button>
+            <button type="button" class="example-chip" data-scenario="salary">💰 월급을 못 받았어요</button>
+          </div>
+          <p class="disclaimer-text">
+            <svg class="disclaimer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            법률 자문이 아닌 정보 제공 서비스입니다
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 5. 검색 결과 섹션 (초기에는 hidden 클래스 적용) -->
+    <section class="results-section hidden" id="results-section" hidden>
+      <div class="results-container">
+        
+        <div class="results-header">
+          <h2 class="section-title">분석 결과</h2>
+          <button type="button" class="back-btn" id="reset-search-btn-top">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            다른 상황 검색하기
+          </button>
+        </div>
+
+        <!-- A. 상황 요약 박스 -->
+        <div class="summary-box" id="summary-box">
+          <div class="summary-icon-container">
+            <svg class="summary-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+          <div class="summary-content">
+            <h3 class="summary-title">작성하신 상황 요약</h3>
+            <p class="summary-text" id="summary-text">입력하신 상황을 분석 중입니다...</p>
+          </div>
+        </div>
+
+        <!-- B. 법령 카드 리스트 -->
+        <div class="law-cards-list" id="law-cards-list">
+          <!-- JS에서 동적으로 생성 삽입 -->
+        </div>
+
+        <!-- B-2. 지금 할 일 (카드 목록 아래 한 번만) -->
+        <div class="next-action-card hidden" id="next-action-card" hidden>
+          <div class="next-action-header">
+            <span class="action-label-tag">지금 할 일</span>
+            <span class="next-action-source hidden" id="next-action-source"></span>
+          </div>
+          <p class="action-text" id="next-action-text"></p>
+        </div>
+
+        <!-- C. 종합 안내 카드 -->
+        <div class="comprehensive-card" id="comprehensive-card">
+          <div class="comp-icon-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+          </div>
+          <div class="comp-body">
+            <h3 class="comp-title">종합 대처 가이드</h3>
+            <p class="comp-text" id="comp-text">권익 보호를 위해 위 단계별 조치를 체계적으로 이행하는 것이 중요합니다. 입증 자료를 최대한 수집하고 공식 기구를 적극 활용하세요.</p>
+          </div>
+        </div>
+
+        <!-- D. 면책 고지 -->
+        <div class="warning-banner">
+          <div class="warning-header">
+            <svg class="warning-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <span>이용 시 꼭 유의해 주세요!</span>
+          </div>
+          <p class="warning-text">
+            본 서비스는 한국 법제처의 공공 데이터를 가공하여 인공지능이 분석한 정보를 제공하며, 어떠한 경우에도 <strong>법률적 판단이나 자문을 대신할 수 없습니다.</strong> 구체적인 법률 분쟁이나 법적 구제 절차 진행 시에는 반드시 대한법률구조공단 또는 변호사 등 공인된 전문가의 법률 자문을 받으시기 바랍니다.
+          </p>
+        </div>
+
+        <!-- E. 하단 다른 상황 검색하기 버튼 -->
+        <div class="results-footer">
+          <button type="button" class="back-btn-large" id="reset-search-btn-bottom">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            새로운 상황으로 다시 검색하기
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 6. 이용 방법 섹션 -->
+    <section class="how-it-works" id="how-it-works">
+      <div class="section-container">
+        <span class="section-label">HOW IT WORKS</span>
+        <h2 class="how-title">3단계로 끝나요</h2>
+        
+        <div class="steps-grid">
+          
+          <div class="step-card">
+            <div class="step-num">01</div>
+            <div class="step-header">
+              <span class="step-emoji">✍️</span>
+              <h3 class="step-card-title">상황을 적어요</h3>
+            </div>
+            <p class="step-desc">본인이 처한 억울한 일이나 궁금한 분쟁 상황을 대화하듯 편하게 작성합니다.</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-num">02</div>
+            <div class="step-header">
+              <span class="step-emoji">🔍</span>
+              <h3 class="step-card-title">AI가 법령을 찾아요</h3>
+            </div>
+            <p class="step-desc">작성한 문맥을 정밀하게 파악하여 가장 연관성이 높은 대한민국 법 조항들을 선별합니다.</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-num">03</div>
+            <div class="step-header">
+              <span class="step-emoji">📋</span>
+              <h3 class="step-card-title">쉽게 정리해드려요</h3>
+            </div>
+            <p class="step-desc">어려운 법률 한자어나 한글 조문을 알기 쉬운 일상어로 다시 정리해서 읽어 드립니다.</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-num">04</div>
+            <div class="step-header">
+              <span class="step-emoji">✅</span>
+              <h3 class="step-card-title">행동 방법까지</h3>
+            </div>
+            <p class="step-desc">법적 보호를 받기 위해 지금 당장 개인이 취해야 할 실질적인 액션 플랜을 제시합니다.</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- 자주 묻는 질문 (FAQ) 섹션 추가 - 네비게이션 가시성 및 기획 완성도 극대화 -->
+    <section class="faq-section" id="faq">
+      <div class="section-container">
+        <span class="section-label">FAQ</span>
+        <h2 class="faq-title">자주 묻는 질문</h2>
+        
+        <div class="faq-list">
+          <details class="faq-item">
+            <summary class="faq-question">
+              무료 서비스인가요?
+              <span class="faq-toggle"></span>
+            </summary>
+            <p class="faq-answer">
+              네, 로맵은 누구나 회원가입 없이 무료로 본인의 억울한 상황에 관한 법률 근거를 찾아보고 안내받을 수 있는 공익적 목적의 웹 서비스입니다.
+            </p>
+          </details>
+          <details class="faq-item">
+            <summary class="faq-question">
+              여기서 검색한 결과로 법적 효력을 주장할 수 있나요?
+              <span class="faq-toggle"></span>
+            </summary>
+            <p class="faq-answer">
+              아니요. 로맵이 제공하는 법령과 가이드는 참고 정보일 뿐이며 정식 법적 효력이나 구제력을 갖지 못합니다. 행정 소송, 노동청 신고, 민사 분쟁 등 실질적인 법률 분쟁이 벌어졌을 때는 공인 전문가의 검토를 꼭 거치셔야 합니다.
+            </p>
+          </details>
+          <details class="faq-item">
+            <summary class="faq-question">
+              입력하는 텍스트나 개인 정보가 저장되나요?
+              <span class="faq-toggle"></span>
+            </summary>
+            <p class="faq-answer">
+              아닙니다. 로맵은 사용자가 입력한 상황 텍스트를 데이터베이스에 보관하지 않으며, 일회성 검색 분석 목적으로만 처리하여 사생활 누출 우려 없이 안전하게 이용하실 수 있습니다.
+            </p>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 7. 푸터 -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-left">
+        <a href="#" class="logo">
+          <span class="logo-box">법</span>
+          <span class="logo-text">로맵</span>
+        </a>
+        <p class="copyright">© 2026 LawMap. All rights reserved.</p>
+      </div>
+      <div class="footer-right">
+        <p class="footer-warning">본 서비스는 법률 자문이 아닌 정보 제공 서비스입니다. 자세한 법률 상담은 전문 법조인의 자문을 구하십시오.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 토스트 알림 (복사 완료 알림용) -->
+  <div class="toast" id="toast-msg">복사 완료!</div>
+
+  <!-- 법령 API (법망 REST fallback) + 앱 로직 -->
+  <script src="law-api.js?v=3"></script>
+  <script src="index.js?v=3"></script>
+</body>
+</html>
