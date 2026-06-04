@@ -106,7 +106,7 @@ vercel env add OPENAI_MODEL
 
 ### 3. Vercel 참고 사항
 
-- 서버리스 **최대 실행 시간**은 `vercel.json`에서 60초로 설정되어 있습니다. (플랜에 따라 상한이 다를 수 있음)
+- 검색 API는 서버리스 함수로 동작합니다. **Settings → Functions → Max Duration** 을 60초(플랜 허용 범위)로 올리는 것을 권장합니다.
 - `korean-law-mcp`는 `package.json` 의존성으로 설치되며, Vercel 빌드 시 `node_modules/.bin/korean-law` 를 사용합니다.
 - **비밀키는 Vercel에만** 넣고, GitHub에는 `.env` 를 올리지 마세요.
 
