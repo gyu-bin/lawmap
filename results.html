@@ -9,7 +9,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚖️</text></svg>">
-  <link rel="stylesheet" href="index.css?v=10">
+  <script>
+    (function(){try{var t=localStorage.getItem("lawmap:theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();
+  </script>
+  <link rel="stylesheet" href="index.css?v=17">
 </head>
 <body class="page-results">
 
@@ -20,6 +23,16 @@
         <span class="logo-text">로맵</span>
       </a>
       <nav class="nav-menu">
+        <button type="button" class="theme-toggle" aria-pressed="false" aria-label="다크 모드로 전환">
+          <svg class="theme-toggle-icon theme-toggle-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+          </svg>
+          <svg class="theme-toggle-icon theme-toggle-icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+          <span class="theme-toggle-label">다크</span>
+        </button>
         <a href="index.html#how-it-works" class="nav-link">이용방법</a>
         <a href="index.html" class="nav-btn nav-btn-outline" id="nav-btn-home">홈으로</a>
       </nav>
@@ -41,14 +54,44 @@
           </button>
         </div>
 
-        <div class="results-loading" id="results-loading" aria-live="polite">
-          <div class="results-loading-inner">
-            <div class="loader-dots loader-dots--page">
-              <span class="dot"></span>
-              <span class="dot"></span>
-              <span class="dot"></span>
+        <div class="results-loading" id="results-loading" aria-live="polite" aria-busy="true">
+          <div class="results-loading-card">
+            <div class="loading-top">
+              <div class="lawmap-loader lawmap-loader--compact" aria-hidden="true">
+                <div class="lawmap-loader-ring"></div>
+                <span class="lawmap-loader-icon">법</span>
+              </div>
+              <div class="loading-top-copy">
+                <span class="loading-eyebrow">로맵 분석 중</span>
+                <p class="results-loading-text" id="results-loading-text">작성하신 상황을 분석하고 있습니다…</p>
+              </div>
+              <span class="loading-percent" id="loading-percent">0%</span>
             </div>
-            <p class="results-loading-text">법제처 API에서 관련 법령·조문·판례를 조회하고 있습니다…</p>
+            <div class="loading-track-wrap">
+              <div class="loading-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div class="loading-progress-bar" id="loading-progress-bar"></div>
+              </div>
+            </div>
+            <div class="loading-stepper" aria-hidden="true">
+              <ol class="loading-steps loading-steps--horizontal" id="loading-steps">
+                <li class="loading-step is-active" data-step="0">
+                  <span class="loading-step-dot"></span>
+                  <span class="loading-step-label">상황 이해</span>
+                </li>
+                <li class="loading-step" data-step="1">
+                  <span class="loading-step-dot"></span>
+                  <span class="loading-step-label">법령 검색</span>
+                </li>
+                <li class="loading-step" data-step="2">
+                  <span class="loading-step-dot"></span>
+                  <span class="loading-step-label">판례 검색</span>
+                </li>
+                <li class="loading-step" data-step="3">
+                  <span class="loading-step-dot"></span>
+                  <span class="loading-step-label">AI 요약</span>
+                </li>
+              </ol>
+            </div>
           </div>
         </div>
 
@@ -64,6 +107,15 @@
             <p class="key-summary hidden" id="key-summary" hidden></p>
           </div>
         </div>
+
+        <article class="situation-brief-card hidden" id="situation-brief-card" hidden aria-labelledby="situation-brief-title">
+          <div class="situation-brief-header">
+            <h3 class="situation-brief-title" id="situation-brief-title">핵심 안내</h3>
+            <span class="situation-brief-badge">AI 생성 · 참고용 · 법률 자문 아님</span>
+          </div>
+          <p class="situation-brief-opening" id="situation-brief-opening"></p>
+          <div class="situation-brief-sections" id="situation-brief-sections"></div>
+        </article>
 
         <div class="results-block" id="laws-block">
           <h3 class="subsection-title">관련 법령</h3>
@@ -124,8 +176,9 @@
 
   <div class="toast" id="toast-msg">복사 완료!</div>
 
-  <script src="law-api.js?v=6"></script>
-  <script src="lib/lawmap-shared.js?v=1"></script>
-  <script src="results.js?v=10"></script>
+  <script src="law-api.js?v=7"></script>
+  <script src="lib/lawmap-shared.js?v=2"></script>
+  <script src="lib/theme.js?v=1"></script>
+  <script src="results.js?v=22"></script>
 </body>
 </html>

@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const { SCENARIO_LABELS, analyzeInputScenario, loadSituation } =
-    window.LawMapShared || {};
+  const { loadSituation } = window.LawMapShared || {};
 
   const summaryText = document.getElementById("summary-text");
   const lawCardsList = document.getElementById("law-cards-list");
@@ -12,10 +11,27 @@ document.addEventListener("DOMContentLoaded", () => {
   const nextActionText = document.getElementById("next-action-text");
   const nextActionSource = document.getElementById("next-action-source");
   const keySummaryEl = document.getElementById("key-summary");
+  const situationBriefCard = document.getElementById("situation-brief-card");
+  const situationBriefOpening = document.getElementById("situation-brief-opening");
+  const situationBriefSections = document.getElementById("situation-brief-sections");
   const resetBtnTop = document.getElementById("reset-search-btn-top");
   const resetBtnBottom = document.getElementById("reset-search-btn-bottom");
   const toastMsg = document.getElementById("toast-msg");
   const resultsLoading = document.getElementById("results-loading");
+  const resultsLoadingText = document.getElementById("results-loading-text");
+  const loadingProgressBar = document.getElementById("loading-progress-bar");
+  const loadingStepsEl = document.getElementById("loading-steps");
+  const loadingPercentEl = document.getElementById("loading-percent");
+
+  let loadingPhases = [
+    { text: "AI가 상황을 분석하고 있습니다…", progress: 22 },
+    { text: "법제처 API에서 법령·조문을 검색합니다…", progress: 50 },
+    { text: "관련 판례를 조회합니다…", progress: 78 },
+    { text: "판례를 쉬운 말로 요약하고 있습니다…", progress: 88 },
+    { text: "상황에 맞는 핵심 안내를 작성하고 있습니다…", progress: 96 }
+  ];
+  let loadingPhaseTimer = null;
+  let loadingPhaseIndex = 0;
 
   const inputText = (loadSituation && loadSituation()) || "";
   if (!inputText.trim()) {
@@ -30,11 +46,69 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => toastMsg.classList.remove("show"), 2000);
   };
 
+  const setLoadingPhasesFromHints = (hints) => {
+    if (!Array.isArray(hints) || hints.length < 2) return;
+    const progressSteps = [22, 50, 78, 94, 98];
+    loadingPhases = hints.slice(0, 4).map((text, i) => ({
+      text,
+      progress: progressSteps[i] || 92
+    }));
+  };
+
+  const updateLoadingPhase = (index) => {
+    const phase = loadingPhases[index];
+    if (!phase) return;
+    if (resultsLoadingText) resultsLoadingText.textContent = phase.text;
+    if (loadingProgressBar) loadingProgressBar.style.width = `${phase.progress}%`;
+    if (loadingPercentEl) loadingPercentEl.textContent = `${phase.progress}%`;
+    if (loadingStepsEl) {
+      loadingStepsEl.querySelectorAll(".loading-step").forEach((el, i) => {
+        el.classList.toggle("is-active", i === index);
+        el.classList.toggle("is-done", i < index);
+        el.classList.toggle("is-pending", i > index);
+      });
+    }
+    const progressRoot = loadingProgressBar?.parentElement;
+    if (progressRoot) progressRoot.setAttribute("aria-valuenow", String(phase.progress));
+  };
+
+  const startLoadingAnimation = () => {
+    loadingPhaseIndex = 0;
+    updateLoadingPhase(0);
+    if (loadingPhaseTimer) clearInterval(loadingPhaseTimer);
+    loadingPhaseTimer = setInterval(() => {
+      if (loadingPhaseIndex >= loadingPhases.length - 1) return;
+      loadingPhaseIndex += 1;
+      updateLoadingPhase(loadingPhaseIndex);
+    }, 1600);
+  };
+
+  const stopLoadingAnimation = () => {
+    if (loadingPhaseTimer) {
+      clearInterval(loadingPhaseTimer);
+      loadingPhaseTimer = null;
+    }
+    if (loadingProgressBar) loadingProgressBar.style.width = "100%";
+    if (loadingPercentEl) loadingPercentEl.textContent = "100%";
+    if (loadingStepsEl) {
+      loadingStepsEl.querySelectorAll(".loading-step").forEach((el) => {
+        el.classList.remove("is-active", "is-pending");
+        el.classList.add("is-done");
+      });
+    }
+  };
+
   const setLoading = (on) => {
     if (resultsLoading) {
       resultsLoading.classList.toggle("hidden", !on);
-      if (on) resultsLoading.removeAttribute("hidden");
-      else resultsLoading.setAttribute("hidden", "");
+      resultsLoading.setAttribute("aria-busy", on ? "true" : "false");
+      if (on) {
+        resultsLoading.removeAttribute("hidden");
+        startLoadingAnimation();
+      } else {
+        stopLoadingAnimation();
+        resultsLoading.setAttribute("hidden", "");
+      }
     }
     document.body.classList.toggle("is-searching", on);
   };
@@ -72,6 +146,39 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
+  const LAW_DESC_PREVIEW = 320;
+
+  const bindLawExpandButtons = (root) => {
+    root.querySelectorAll(".law-body-wrap.is-clamped").forEach((wrap) => {
+      const btn = wrap.querySelector(".law-expand-btn");
+      if (!btn || btn.dataset.bound) return;
+      btn.dataset.bound = "1";
+      btn.addEventListener("click", () => {
+        const expanded = wrap.classList.toggle("is-expanded");
+        btn.setAttribute("aria-expanded", expanded ? "true" : "false");
+        btn.textContent = expanded ? "접기" : "전체 보기";
+      });
+    });
+  };
+
+  const buildLawBodyHtml = (text) => {
+    const full = String(text || "").trim();
+    if (!full) {
+      return '<p class="law-body-desc law-body-desc--empty">조문 본문을 불러오지 못했습니다.</p>';
+    }
+    const needsClamp = full.length > LAW_DESC_PREVIEW;
+    if (!needsClamp) {
+      return `<p class="law-body-desc">${escapeHtml(full)}</p>`;
+    }
+    const preview = `${full.slice(0, LAW_DESC_PREVIEW).trim()}…`;
+    return `
+      <div class="law-body-wrap is-clamped">
+        <p class="law-body-desc law-body-desc--preview">${escapeHtml(preview)}</p>
+        <p class="law-body-desc law-body-desc--full">${escapeHtml(full)}</p>
+        <button type="button" class="law-expand-btn" aria-expanded="false">전체 보기</button>
+      </div>`;
+  };
+
   const renderLawCards = (laws) => {
     if (!lawCardsList) return;
     lawCardsList.innerHTML = "";
@@ -99,7 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="divider"></div>
         <div class="core-box">
           <span class="core-title">조문 원문 (법제처 API)</span>
-          <p class="law-body-desc">${escapeHtml(law.desc || law.core || "")}</p>
+          ${buildLawBodyHtml(law.desc || law.core || "")}
         </div>
         <div class="law-card-footer">
           <a href="${escapeHtml(law.link)}" target="_blank" rel="noopener noreferrer" class="official-link">
@@ -122,6 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
       lawCardsList.appendChild(card);
     });
     bindCopyButtons(lawCardsList);
+    bindLawExpandButtons(lawCardsList);
   };
 
   const splitReadableChunks = (text) => {
@@ -179,7 +287,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const bindPrecAccordions = () => {
     precCardsList.querySelectorAll(".prec-accordion-toggle").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const panel = btn.nextElementSibling;
+        const panel = btn.closest(".prec-accordion")?.querySelector(".prec-accordion-panel");
         if (!panel) return;
         const open = btn.getAttribute("aria-expanded") === "true";
         btn.setAttribute("aria-expanded", open ? "false" : "true");
@@ -215,22 +323,48 @@ document.addEventListener("DOMContentLoaded", () => {
     precedentsBlock.removeAttribute("hidden");
 
     if (precListMeta) {
-      if (meta.listCount > 0 || precs?.length) {
+      if (meta.skipReason === "no_legal_intent" || meta.skipReason === "ai_skip") {
         precListMeta.classList.remove("hidden");
         precListMeta.removeAttribute("hidden");
-        precListMeta.textContent = meta.listCount
-          ? `판례 목록 API에서 ${meta.listCount}건을 찾았고, 그중 ${precs?.length || 0}건의 사건·주문·이유를 표시합니다.`
-          : "";
+        precListMeta.textContent =
+          meta.skipGuidance ||
+          "AI 분석 결과 이 상황에서는 판례 검색을 하지 않았습니다.";
+      } else if (meta.listCount > 0 || precs?.length) {
+        precListMeta.classList.remove("hidden");
+        precListMeta.removeAttribute("hidden");
+        if (precs?.length) {
+          const searched = meta.searchedCount || meta.listCount;
+          if (meta.partialMatch) {
+            precListMeta.textContent = `유사 사례 ${precs.length}건 — 사실관계가 완전히 같지는 않을 수 있습니다. AI 요약과 원문을 참고하세요.`;
+          } else if (searched > precs.length) {
+            precListMeta.textContent = `판례 ${searched}건 중 관련 ${precs.length}건 — AI 쉬운 요약과 원문을 함께 볼 수 있습니다.`;
+          } else {
+            precListMeta.textContent = `판례 ${precs.length}건 — AI 쉬운 요약과 원문을 함께 볼 수 있습니다.`;
+          }
+        } else if (meta.listCount > 0) {
+          precListMeta.textContent =
+            meta.skipGuidance ||
+            `판례 ${meta.listCount}건을 검색했지만, 입력하신 상황과 맞는 판례는 없었습니다.`;
+        } else {
+          precListMeta.textContent = "";
+        }
       } else {
         precListMeta.classList.add("hidden");
       }
     }
 
     if (!precs?.length) {
+      const emptyDetail =
+        meta.skipGuidance ||
+        (meta.skipReason === "no_legal_intent" || meta.skipReason === "ai_skip"
+          ? "AI 분석 결과 판례 검색 대상이 아닙니다."
+          : meta.listCount > 0
+            ? "검색된 판례 중 상황과 관련 있는 사건을 찾지 못했습니다."
+            : "판례 검색 결과가 없습니다.");
       precCardsList.innerHTML = `
         <div class="empty-state" role="status">
           <p class="empty-state-title">조건에 맞는 판례를 찾지 못했습니다</p>
-          <p class="empty-state-detail">판례는 법령과 별도 API(target=prec)입니다. 검색어를 바꾸거나 위 「관련 법령」 조문을 먼저 확인해 보세요.</p>
+          <p class="empty-state-detail">${escapeHtml(emptyDetail)}</p>
         </div>`;
       return;
     }
@@ -245,7 +379,28 @@ document.addEventListener("DOMContentLoaded", () => {
       const judgmentOrder = prec.judgmentOrder || "";
       const courtAnalysis = prec.courtAnalysis || "";
       const isFirst = index === 0;
-      const preview = judgmentOrder || caseFacts.slice(0, 100) || holding.slice(0, 100) || "내용 펼치기";
+      const aiSummary = (prec.aiSummary || "").trim();
+      const aiRelevance = (prec.aiRelevance || "").trim();
+      const relevanceNote = (prec.relevanceNote || "").trim();
+      const preview =
+        aiSummary.slice(0, 100) ||
+        judgmentOrder ||
+        caseFacts.slice(0, 100) ||
+        holding.slice(0, 100) ||
+        "내용 펼치기";
+
+      const aiSummaryHtml =
+        aiSummary
+          ? `<div class="prec-ai-summary">
+              <div class="prec-ai-summary-head">
+                <span class="prec-ai-badge">AI 쉬운 요약</span>
+                <span class="prec-ai-disclaimer">참고용 · 법률 자문 아님</span>
+              </div>
+              <p class="prec-ai-text">${escapeHtml(aiSummary)}</p>
+              ${aiRelevance ? `<p class="prec-ai-relevance"><strong>내 상황과:</strong> ${escapeHtml(aiRelevance)}</p>` : ""}
+              ${relevanceNote ? `<p class="prec-match-note">관련성: ${escapeHtml(relevanceNote)}</p>` : ""}
+            </div>`
+          : "";
 
       const precSection = (label, text, open = false) => {
         if (!text || !String(text).trim()) return "";
@@ -288,6 +443,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ].join("");
 
       card.innerHTML = `
+        ${aiSummaryHtml}
         <button type="button" class="prec-accordion-toggle ${isFirst ? "is-open" : ""}" aria-expanded="${isFirst ? "true" : "false"}">
           <div class="prec-accordion-head">
             <span class="num-badge num-badge--prec">${prec.num}</span>
@@ -300,6 +456,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="prec-accordion-icon" aria-hidden="true"></span>
         </button>
         <div class="prec-accordion-panel" ${isFirst ? "" : "hidden"}>
+          <p class="prec-original-label">판례 원문</p>
           <div class="prec-sections">
             ${bodyHtml}
           </div>
@@ -327,6 +484,58 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     bindPrecAccordions();
     bindCopyButtons(precCardsList);
+  };
+
+  const hideSituationBrief = () => {
+    if (!situationBriefCard) return;
+    situationBriefCard.classList.add("hidden");
+    situationBriefCard.setAttribute("hidden", "");
+    if (situationBriefOpening) situationBriefOpening.textContent = "";
+    if (situationBriefSections) situationBriefSections.innerHTML = "";
+  };
+
+  const renderSituationBrief = (brief) => {
+    if (!situationBriefCard || !situationBriefSections) return;
+    if (!brief || typeof brief !== "object") {
+      hideSituationBrief();
+      return;
+    }
+
+    const sections = [
+      { title: "핵심 요약", body: brief.coreSummary },
+      { title: "지금 가장 중요한 것", body: brief.evidenceFocus },
+      { title: "지금 할 일", body: brief.actionSteps }
+    ].filter((s) => s.body && String(s.body).trim());
+
+    if (!brief.opening && !sections.length) {
+      hideSituationBrief();
+      return;
+    }
+
+    if (situationBriefOpening) {
+      situationBriefOpening.textContent = brief.opening || "";
+      situationBriefOpening.classList.toggle("hidden", !brief.opening);
+    }
+
+    situationBriefSections.innerHTML = sections
+      .map(
+        (s) => `
+        <section class="situation-brief-section">
+          <h4 class="situation-brief-section-title">${escapeHtml(s.title)}</h4>
+          <p class="situation-brief-section-body">${escapeHtml(s.body)}</p>
+        </section>`
+      )
+      .join("");
+
+    if (brief.extraNote) {
+      situationBriefSections.insertAdjacentHTML(
+        "beforeend",
+        `<p class="situation-brief-extra">${escapeHtml(brief.extraNote)}</p>`
+      );
+    }
+
+    situationBriefCard.classList.remove("hidden");
+    situationBriefCard.removeAttribute("hidden");
   };
 
   const hideKeySummary = () => {
@@ -375,12 +584,13 @@ document.addEventListener("DOMContentLoaded", () => {
     nextActionCard.setAttribute("hidden", "");
   };
 
-  const DEFAULT_NEXT_ACTION =
-    "위 조문 원문을 확인하고, 상황에 맞는 증거를 정리한 뒤 필요 시 관할 기관·전문가 상담을 검토하세요.";
-
   const renderNextAction = (text, source) => {
     if (!nextActionCard || !nextActionText) return;
-    const action = (text && String(text) !== "undefined" ? text : "").trim() || DEFAULT_NEXT_ACTION;
+    const action = (text && String(text) !== "undefined" ? text : "").trim();
+    if (!action) {
+      hideNextAction();
+      return;
+    }
     nextActionText.textContent = action;
     if (nextActionSource) {
       if (source === "openai") {
@@ -397,40 +607,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const renderEmptyState = (message, detail, extraDetail) => {
     hideNextAction();
+    hideSituationBrief();
     if (precedentsBlock) {
       precedentsBlock.classList.add("hidden");
       precedentsBlock.setAttribute("hidden", "");
     }
     lawCardsList.innerHTML = `
       <div class="empty-state" role="alert">
-        <p class="empty-state-title">${message}</p>
-        <p class="empty-state-detail">${detail}</p>
-        ${extraDetail ? `<p class="empty-state-detail">${extraDetail}</p>` : ""}
+        <p class="empty-state-title">${escapeHtml(message)}</p>
+        <p class="empty-state-detail">${escapeHtml(detail)}</p>
+        ${extraDetail ? `<p class="empty-state-detail">${escapeHtml(extraDetail)}</p>` : ""}
       </div>
     `;
     hideKeySummary();
   };
 
-  const renderResults = (scenarioKey, userText, options = {}) => {
+  const renderResults = (userText, options = {}) => {
     const {
       liveLaws,
       livePrecedents,
       precListCount,
+      precSearchedCount,
+      precSkipReason,
+      precSkipGuidance,
       error,
-      dataSource,
       keySummary,
       noLawOcMessage,
+      noOpenAiMessage,
       situationLabel,
+      situationSummary,
+      situationBrief,
       nextAction,
       nextActionSource,
       detail
     } = options;
-    const label =
-      situationLabel ||
-      (SCENARIO_LABELS && SCENARIO_LABELS[scenarioKey]) ||
-      (SCENARIO_LABELS && SCENARIO_LABELS.general) ||
-      "일반";
-    const excerpt = userText.substring(0, 80) + (userText.length > 80 ? "..." : "");
+    const label = situationLabel || "일반";
+    const fullQuestion = escapeHtml(userText.trim());
 
     hideKeySummary();
 
@@ -438,47 +650,53 @@ document.addEventListener("DOMContentLoaded", () => {
     const hasPrecs = livePrecedents?.length > 0;
 
     if (error || (!hasLaws && !hasPrecs)) {
-      const isMaintenance = error === "maintenance";
       const isNoOc = error === "no_law_oc";
-      summaryText.innerHTML = `<strong>"${excerpt}"</strong> — <strong>[${label}]</strong> 관련 검색을 시도했으나 법령 데이터를 불러오지 못했습니다.`;
+      const isNoAi = error === "no_openai_key";
+      summaryText.innerHTML = situationSummary
+        ? `<strong>"${fullQuestion}"</strong> — ${escapeHtml(situationSummary)}`
+        : `<strong>"${fullQuestion}"</strong> — <strong>[${escapeHtml(label)}]</strong> 관련 검색을 완료하지 못했습니다.`;
 
       if (isNoOc) {
-        renderEmptyState(
-          "법제처 API 설정이 필요합니다",
-          noLawOcMessage ||
-            "프로젝트 루트 .env 파일에 LAW_OC(법제처 Open API 키)를 넣고 npm run dev 로 서버를 다시 실행하세요. 발급: https://open.law.go.kr"
-        );
-      } else if (isMaintenance) {
-        renderEmptyState(
-          "법망 API 점검 중입니다",
-          "보조 API(법망)만 점검 중입니다. Vercel에 LAW_OC·OPENAI_API_KEY가 설정되어 있으면 법제처 API로 조회합니다."
-        );
+        renderEmptyState("법제처 API 설정이 필요합니다", noLawOcMessage || detail || "");
+      } else if (isNoAi) {
+        renderEmptyState("OpenAI API 설정이 필요합니다", noOpenAiMessage || detail || "");
       } else {
         renderEmptyState(
-          "관련 법령을 찾지 못했습니다",
-          detail || "검색어를 바꾸거나 잠시 후 다시 시도해 주세요."
+          error === "no_legal_intent" ? "법적 분쟁 상황으로 보기 어렵습니다" : "관련 법령을 찾지 못했습니다",
+          detail || precSkipGuidance || "상황을 더 구체적으로 적어 보세요."
         );
       }
       return;
     }
 
-    const badge =
-      dataSource === "korean-law"
-        ? '<span class="source-badge">법제처 Open API</span>'
-        : '<span class="source-badge">법망 API</span>';
+    const badge = '<span class="source-badge">AI + 법제처 Open API</span>';
     const parts = [];
     if (hasLaws) parts.push("법령");
     if (hasPrecs) parts.push("판례");
-    const precNote = hasPrecs
-      ? ""
-      : " (판례는 별도 검색·법령과 사건 구조가 다릅니다)";
-    summaryText.innerHTML = `<strong>"${excerpt}"</strong> 상황과 <strong>[${label}]</strong> 영역에 연관된 ${parts.join("·") || "자료"}을(를) 조회했습니다${precNote}. ${badge}`;
+    const precNote =
+      hasPrecs
+        ? ""
+        : precSkipReason === "no_legal_intent" || precSkipReason === "ai_skip"
+          ? " (판례 미검색)"
+          : precSkipReason === "no_relevant_match"
+            ? " (판례는 검색했으나 관련 사례 없음)"
+            : " (판례는 별도 검색·법령과 사건 구조가 다릅니다)";
+    summaryText.innerHTML = `<strong>"${fullQuestion}"</strong> 상황과 <strong>[${escapeHtml(label)}]</strong> 영역에 연관된 ${parts.join("·") || "자료"}을(를) 조회했습니다${precNote}. ${badge}`;
     if (lawsBlock) lawsBlock.classList.toggle("hidden", !hasLaws);
+    renderSituationBrief(situationBrief);
     renderLawCards(hasLaws ? liveLaws : []);
     renderPrecCards(livePrecedents || [], {
-      listCount: options.precListCount || livePrecedents?.length || 0
+      listCount: options.precListCount || livePrecedents?.length || 0,
+      searchedCount: options.precSearchedCount,
+      skipReason: options.precSkipReason,
+      skipGuidance: options.precSkipGuidance,
+      partialMatch: options.precPartialMatch
     });
-    renderNextAction(nextAction, nextActionSource);
+    if (situationBrief?.actionSteps) {
+      hideNextAction();
+    } else {
+      renderNextAction(nextAction, nextActionSource);
+    }
     renderKeySummary(
       keySummary || buildKeySummaryFromCards(liveLaws, livePrecedents)
     );
@@ -486,57 +704,69 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const performSearch = async () => {
     setLoading(true);
-    summaryText.textContent =
-      "법제처 API에서 관련 법령·조문·판례를 조회하고 있습니다…";
+    summaryText.textContent = "AI가 상황을 분석하고 법령·판례를 조회합니다…";
 
-    const scenario = analyzeInputScenario
-      ? analyzeInputScenario(inputText)
-      : "general";
-    let renderOpts = { error: "unavailable" };
+    let renderOpts = {
+      error: "unavailable",
+      detail: "서버에 연결하지 못했습니다. npm run dev 로 서버를 실행했는지 확인하세요."
+    };
 
     if (typeof LawApi !== "undefined" && LawApi.fetchLiveLawCards) {
       try {
-        const live = await LawApi.fetchLiveLawCards(scenario, inputText);
+        const live = await LawApi.fetchLiveLawCards(null, inputText);
+
+        if (live.loadingHints) setLoadingPhasesFromHints(live.loadingHints);
+
         if (live.ok && (live.laws?.length || live.precedents?.length)) {
           renderOpts = {
             liveLaws: live.laws || [],
             livePrecedents: live.precedents || [],
             precListCount: live.precListCount,
-            dataSource: live.source,
+            precSearchedCount: live.precSearchedCount,
+            precSkipReason: live.precSkipReason,
+            precSkipGuidance: live.precSkipGuidance,
+            precPartialMatch: live.precPartialMatch,
             keySummary: live.keySummary,
             situationLabel: live.situationLabel,
+            situationSummary: live.situationSummary,
+            situationBrief: live.situationBrief,
             nextAction: live.nextAction,
             nextActionSource: live.nextActionSource
-          };
-        } else if (live.situationLabel && (live.koreanLawFailed || live.empty)) {
-          renderOpts = {
-            error: "empty",
-            situationLabel: live.situationLabel,
-            detail:
-              live.detail ||
-              "조문 본문을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."
           };
         } else if (live.noLawOc) {
           renderOpts = {
             error: "no_law_oc",
             noLawOcMessage: live.message,
-            maintenance: live.maintenance
+            detail: live.message
           };
-        } else if (live.maintenance) {
-          renderOpts = { error: "maintenance" };
-        } else if (live.koreanLawFailed || live.empty) {
+        } else if (live.noOpenAi) {
           renderOpts = {
-            error: "empty",
-            detail: live.detail || live.error
+            error: "no_openai_key",
+            noOpenAiMessage: live.message,
+            detail: live.message
+          };
+        } else {
+          renderOpts = {
+            error: live.error || "empty",
+            situationLabel: live.situationLabel,
+            situationSummary: live.situationSummary,
+            detail: live.detail || live.message,
+            precListCount: live.precListCount,
+            precSearchedCount: live.precSearchedCount,
+            precSkipReason: live.precSkipReason,
+            precSkipGuidance: live.precSkipGuidance
           };
         }
       } catch {
-        renderOpts = { error: "unavailable" };
+        renderOpts = {
+          error: "unavailable",
+          detail: "검색 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."
+        };
       }
     }
 
     setLoading(false);
-    renderResults(scenario, inputText, renderOpts);
+    renderResults(inputText, renderOpts);
   };
 
   const goHome = () => {

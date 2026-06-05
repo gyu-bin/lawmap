@@ -32,7 +32,10 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚖️</text></svg>">
   
   <!-- 스타일시트 연동 -->
-  <link rel="stylesheet" href="index.css">
+  <script>
+    (function(){try{var t=localStorage.getItem("lawmap:theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();
+  </script>
+  <link rel="stylesheet" href="index.css?v=14">
 </head>
 <body>
 
@@ -46,6 +49,16 @@
       <nav class="nav-menu">
         <a href="#how-it-works" class="nav-link" id="nav-link-how">이용방법</a>
         <a href="#faq" class="nav-link" id="nav-link-faq">자주묻는질문</a>
+        <button type="button" class="theme-toggle" aria-pressed="false" aria-label="다크 모드로 전환">
+          <svg class="theme-toggle-icon theme-toggle-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+          </svg>
+          <svg class="theme-toggle-icon theme-toggle-icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+          <span class="theme-toggle-label">다크</span>
+        </button>
         <a href="#search-section" class="nav-btn" id="nav-btn-search">바로 검색하기</a>
       </nav>
     </div>
@@ -100,8 +113,12 @@
                   <polyline points="12 5 19 12 12 19"></polyline>
                 </svg>
                 
-                <!-- 로딩 애니메이션 (숨김 상태) -->
-                <div class="loader-dots" id="loader-dots">
+                <!-- 로딩 애니메이션 -->
+                <div class="lawmap-loader lawmap-loader--btn" aria-hidden="true">
+                  <div class="lawmap-loader-ring"></div>
+                  <div class="lawmap-loader-ring lawmap-loader-ring--reverse"></div>
+                </div>
+                <div class="loader-dots" id="loader-dots" hidden>
                   <span class="dot"></span>
                   <span class="dot"></span>
                   <span class="dot"></span>
@@ -111,15 +128,25 @@
           </form>
         </div>
         
+        <!-- 최근 검색 (기기 로컬 저장) -->
+        <div class="search-history hidden" id="search-history" hidden>
+          <div class="search-history-head">
+            <h3 class="search-history-title">최근 검색</h3>
+            <button type="button" class="search-history-clear" id="clear-history-btn">전체 삭제</button>
+          </div>
+          <ul class="search-history-list" id="search-history-list"></ul>
+          <p class="search-history-note">이 기기 브라우저에만 저장됩니다. 서버로 전송·보관하지 않습니다.</p>
+        </div>
+        
         <!-- 4. 상황 예시 칩 -->
         <div class="chips-container" id="chips-container">
           <div class="chips-label">💡 이런 상황이신가요?</div>
           <div class="chips-wrapper">
-            <button type="button" class="example-chip" data-scenario="layoff">😤 갑자기 해고 당했어요</button>
-            <button type="button" class="example-chip" data-scenario="rent">🏠 집주인이 나가라고 해요</button>
-            <button type="button" class="example-chip" data-scenario="refund">📦 환불이 거부됐어요</button>
-            <button type="button" class="example-chip" data-scenario="bullying">😰 직장 내 괴롭힘</button>
-            <button type="button" class="example-chip" data-scenario="salary">💰 월급을 못 받았어요</button>
+            <button type="button" class="example-chip" data-prompt="근로계약 없이 일했는데 사장이 갑자기 문자로 해고를 통보했습니다. 어떻게 대처해야 하나요?">😤 갑자기 해고 당했어요</button>
+            <button type="button" class="example-chip" data-prompt="전세 만료 전 집주인이 들어와 살겠다며 퇴거를 요구합니다. 계약 갱신이 가능한지 궁금합니다.">🏠 집주인이 나가라고 해요</button>
+            <button type="button" class="example-chip" data-prompt="온라인 쇼핑몰에서 산 옷을 환불 요청했는데 세일 상품이라 반품이 안 된다고 합니다.">📦 환불이 거부됐어요</button>
+            <button type="button" class="example-chip" data-prompt="직장 상사가 다른 사람 앞에서 모욕적인 말을 반복하고 퇴근 후에도 업무 연락을 보냅니다.">😰 직장 내 괴롭힘</button>
+            <button type="button" class="example-chip" data-prompt="퇴사한 지 3주가 지났는데 월급과 퇴직금을 아직 받지 못했습니다.">💰 월급을 못 받았어요</button>
           </div>
           <p class="disclaimer-text">
             <svg class="disclaimer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -213,7 +240,7 @@
               <span class="faq-toggle"></span>
             </summary>
             <p class="faq-answer">
-              아닙니다. 로맵은 사용자가 입력한 상황 텍스트를 데이터베이스에 보관하지 않으며, 일회성 검색 분석 목적으로만 처리하여 사생활 누출 우려 없이 안전하게 이용하실 수 있습니다.
+              검색에 사용한 상황 텍스트는 서버에 저장하지 않습니다. 다만 편의를 위해 <strong>최근 검색 목록</strong>은 이용 중인 브라우저의 localStorage에만 저장되며, 다른 기기·브라우저와 공유되지 않습니다. 전체 삭제 버튼으로 언제든 지울 수 있습니다.
             </p>
           </details>
         </div>
@@ -242,7 +269,8 @@
 
   <!-- 법령 API (법망 REST fallback) + 앱 로직 -->
   <script src="law-api.js?v=6"></script>
-  <script src="lib/lawmap-shared.js?v=1"></script>
-  <script src="home.js?v=1"></script>
+  <script src="lib/lawmap-shared.js?v=2"></script>
+  <script src="lib/theme.js?v=1"></script>
+  <script src="home.js?v=2"></script>
 </body>
 </html>
