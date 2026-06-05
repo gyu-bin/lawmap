@@ -15,16 +15,7 @@
           "home.js",
           "results.js",
           "law-api.js",
-          "lib/analyze-situation.js",
-          "lib/summarize-precedents.js",
-          "lib/rank-precedents.js",
-          "lib/generate-next-action.js",
-          "lib/law-search-network.js",
-          "lib/prec-search-network.js",
-          "lib/law-go-kr-api.js",
-          "lib/lawmap-shared.js",
-          "lib/theme.js",
-          "lib/parse-korean-law.js"
+          "lib/**"
         ]
       }
     }
